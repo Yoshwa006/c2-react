@@ -2,29 +2,27 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavBar from '../components/Navbar.jsx';
 import get from '../service/api.js';
-import SingleProblem from "./SingleProblem.jsx";
+import { enterToken } from "../service/api.js";
 
 function Home() {
     const navigate = useNavigate();
     const [questions, setQuestions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [token, setToken] = useState('');
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 setLoading(true);
                 const data = await get();
-                console.log(data);
                 setQuestions(data);
             } catch (err) {
                 setError(err.message);
-                console.error('Error fetching data:', err);
             } finally {
                 setLoading(false);
             }
         };
-
         fetchData();
     }, []);
 
@@ -36,6 +34,25 @@ function Home() {
             case 'Medium': return 'text-orange-600 bg-orange-50 border border-orange-200';
             case 'Hard': return 'text-red-600 bg-red-50 border border-red-200';
             default: return 'text-gray-600 bg-gray-50 border border-gray-200';
+        }
+    };
+
+    const handleTokenSubmit = async () => {
+        if (!token.trim()) {
+            setError('Please enter a token');
+            return;
+        }
+
+        try {
+            const res = await enterToken({ token });
+            setToken('');
+            if (res !== -1) {
+                navigate(`/${res}`);
+            } else {
+                setError('Invalid token or session full.');
+            }
+        } catch (error) {
+            setError('Error submitting token.');
         }
     };
 
@@ -57,8 +74,6 @@ function Home() {
         );
     }
 
-
-    //eeroor
     if (error) {
         return (
             <div className="min-h-screen bg-white text-gray-900 pt-16">
@@ -82,14 +97,8 @@ function Home() {
     return (
         <div className="min-h-screen bg-white text-gray-900 pt-16 mt-7">
             <NavBar />
-
-            {/* Main Content Container */}
-            <main className="">
-
-
-                {/* Problem List */}
+            <main>
                 <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                    {/* Header */}
                     <div className="px-6 py-3 bg-gray-50 border-b border-gray-200">
                         <div className="grid grid-cols-12 gap-4 text-sm font-medium text-gray-700">
                             <div className="col-span-1">#</div>
@@ -98,7 +107,6 @@ function Home() {
                         </div>
                     </div>
 
-                    {/* Problem List */}
                     <div className="divide-y divide-gray-200">
                         {problems.map((problem, index) => (
                             <div
@@ -128,6 +136,24 @@ function Home() {
                                 </div>
                             </div>
                         ))}
+                    </div>
+
+                    <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                        <div className="flex gap-2 items-center">
+                            <input
+                                type="text"
+                                value={token}
+                                onChange={(e) => setToken(e.target.value)}
+                                placeholder="Enter a token"
+                                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                            <button
+                                onClick={handleTokenSubmit}
+                                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
+                            >
+                                Submit Token
+                            </button>
+                        </div>
                     </div>
                 </div>
             </main>

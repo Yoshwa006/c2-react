@@ -15,6 +15,7 @@ export default async function get() {
 export async function getSingle({id}) {
     try {
         const res = await axios.get(`http://localhost:8080/api/${id}`);
+        console.log(res.data);
         return res.data;
     } catch (error) {
         console.error("Failed to fetch:", error.message);
@@ -34,9 +35,33 @@ export async function getSingle({id}) {
             return res.data;
         } catch (error) {
             console.error('Failed to generate token:', error);
-            throw error; // so the caller knows this failed
+            throw error;
         }
 }
+export async function enterToken({ token }) {
+    console.log("Submitting token:", token);
+    const jwt = localStorage.getItem("token");
+
+    const body = {
+        jwt,
+        token
+    };
+
+    try {
+        const response = await axios.post(`http://localhost:8080/api/enter`, body);
+        const res = response.data;
+
+        if (res !== -1) {
+            localStorage.setItem("QID", res);
+        }
+        localStorage.setItem("ctoken", token);
+        return res;
+    } catch (error) {
+        console.error("Failed to enter token:", error);
+        throw error;
+    }
+}
+
 
 
 export async function register({ email, password }) {
@@ -60,3 +85,15 @@ export async function login({ email, password }) {
         throw error;
     }
 }
+
+export const submitCode = async ({ language_id, source_code, stdin, expected_output, jwtToken, token }) => {
+    const res = await axios.post(`http://localhost:8080/api/submit`, {
+        language_id,
+        source_code,
+        stdin,
+        expected_output,
+        jwtToken,
+        token
+    });
+    return res.data;
+};
