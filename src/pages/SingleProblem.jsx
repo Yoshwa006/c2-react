@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import { generateToken, getSingle } from "../service/api.js";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { generateToken, getSingle, polling } from "../service/api.js";
 import Navbar from "../components/Navbar.jsx";
 
 function SingleProblem() {
@@ -9,7 +9,10 @@ function SingleProblem() {
     const [error, setError] = useState(null);
     const [token, setToken] = useState(null);
     const [showToken, setShowToken] = useState(false);
+    const [waiting, setWaiting] = useState(false);
     const { id } = useParams();
+    const navigate = useNavigate();
+
     useEffect(() => {
         const fetchProblem = async () => {
             try {
@@ -27,14 +30,30 @@ function SingleProblem() {
             fetchProblem();
         }
     }, [id]);
-
+    //
+    // useEffect(() => {
+    //     const polling = async() =>{
+    //         try{
+    //             const res = await polling()
+    //         }
+    //     }
+    // })
     const handleGenerateToken = async () => {
         try {
+            setWaiting(true);
             const tokenData = await generateToken({ questionId: id });
-            setToken(tokenData.token || JSON.stringify(tokenData));
+            const token = tokenData.token || JSON.stringify(tokenData);
+            localStorage.setItem("ctoken", token);
+            setToken(token);
             setShowToken(true);
+
+
+            await polling();
+            setWaiting(false);
+            navigate(`/${id}`);
         } catch (err) {
             setError(err.message || 'Failed to generate token');
+            setWaiting(false);
         }
     };
 
@@ -82,104 +101,109 @@ function SingleProblem() {
     return (
         <div>
             <Navbar />
-        <div className="min-h-screen bg-gray-100">
-            <div className="max-w-7xl mx-auto py-6 px-4">
-                <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
-                    <div className="flex items-start justify-between mb-4">
-                        <div>
-                            <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                                {problem.title}
-                            </h1>
-                            <div className="flex items-center gap-4">
-                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getDifficultyColor(problem.difficulty)}`}>
-                                    {problem.difficulty}
-                                </span>
-                                <span className="text-gray-500 text-sm">Problem #{id}</span>
-                            </div>
-                        </div>
-                    </div>
-
-
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                    <div className="lg:col-span-3 space-y-6">
-                        <div className="bg-white border border-gray-200 rounded-lg">
-                            <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-                                <h2 className="text-lg font-semibold text-gray-900">Problem Statement</h2>
-                            </div>
-                            <div className="p-6">
-                                <p className="whitespace-pre-wrap leading-relaxed text-gray-800 text-base">
-                                    {problem.description}
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="bg-white border border-gray-200 rounded-lg">
-                                <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
-                                    <h3 className="font-semibold text-gray-900">Sample Input</h3>
-                                </div>
-                                <div className="p-4">
-                                    <pre className="text-sm bg-gray-50 p-3 rounded font-mono text-gray-800">
-                                        {problem.stdIn || "No input available."}
-                                    </pre>
-                                </div>
-                            </div>
-
-                            <div className="bg-white border border-gray-200 rounded-lg">
-                                <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
-                                    <h3 className="font-semibold text-gray-900">Sample Output</h3>
-                                </div>
-                                <div className="p-4">
-                                    <pre className="text-sm bg-gray-50 p-3 rounded font-mono text-gray-800">
-                                        {problem.expectedOutput || "No output available."}
-                                    </pre>
+            <div className="min-h-screen bg-gray-100">
+                <div className="max-w-7xl mx-auto py-6 px-4">
+                    <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
+                        <div className="flex items-start justify-between mb-4">
+                            <div>
+                                <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                                    {problem.title}
+                                </h1>
+                                <div className="flex items-center gap-4">
+                                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getDifficultyColor(problem.difficulty)}`}>
+                                        {problem.difficulty}
+                                    </span>
+                                    <span className="text-gray-500 text-sm">Problem #{id}</span>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="lg:col-span-1 space-y-6">
-                        <div className="bg-white border border-gray-200 rounded-lg">
-                            <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
-                                <h3 className="font-semibold text-gray-900">Actions</h3>
-                            </div>
-                            <div className="p-4 space-y-3">
-                                <Link to={`/${id}/edit`} className="block">
-                                    <button className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm py-2.5 px-4 rounded-md font-medium">
-                                        Start Coding
-                                    </button>
-                                </Link>
-
-                                <button
-                                    onClick={handleGenerateToken}
-                                    className="w-full bg-green-600 hover:bg-green-700 text-white text-sm py-2.5 px-4 rounded-md font-medium"
-                                >
-                                    Generate Token
-                                </button>
-                            </div>
-                        </div>
-
-                        {showToken && (
+                    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                        <div className="lg:col-span-3 space-y-6">
                             <div className="bg-white border border-gray-200 rounded-lg">
-                                <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
-                                    <h3 className="font-semibold text-gray-900">Generated Token</h3>
+                                <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                                    <h2 className="text-lg font-semibold text-gray-900">Problem Statement</h2>
                                 </div>
-                                <div className="p-4">
-                                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                                        <p className="text-xs uppercase text-gray-500 font-semibold mb-2">Token</p>
-                                        <div className="font-mono bg-white border border-gray-300 text-gray-900 py-3 px-3 rounded-md text-sm break-all select-all">
-                                            {token}
-                                        </div>
+                                <div className="p-6">
+                                    <p className="whitespace-pre-wrap leading-relaxed text-gray-800 text-base">
+                                        {problem.description}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="bg-white border border-gray-200 rounded-lg">
+                                    <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
+                                        <h3 className="font-semibold text-gray-900">Sample Input</h3>
+                                    </div>
+                                    <div className="p-4">
+                                        <pre className="text-sm bg-gray-50 p-3 rounded font-mono text-gray-800">
+                                            {problem.stdIn || "No input available."}
+                                        </pre>
+                                    </div>
+                                </div>
+
+                                <div className="bg-white border border-gray-200 rounded-lg">
+                                    <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
+                                        <h3 className="font-semibold text-gray-900">Sample Output</h3>
+                                    </div>
+                                    <div className="p-4">
+                                        <pre className="text-sm bg-gray-50 p-3 rounded font-mono text-gray-800">
+                                            {problem.expectedOutput || "No output available."}
+                                        </pre>
                                     </div>
                                 </div>
                             </div>
-                        )}
+                        </div>
+
+                        <div className="lg:col-span-1 space-y-6">
+                            <div className="bg-white border border-gray-200 rounded-lg">
+                                <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
+                                    <h3 className="font-semibold text-gray-900">Actions</h3>
+                                </div>
+                                <div className="p-4 space-y-3">
+                                    <Link to={`/${id}/edit`} className="block">
+                                        <button className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm py-2.5 px-4 rounded-md font-medium">
+                                            Start Coding
+                                        </button>
+                                    </Link>
+
+                                    <button
+                                        onClick={handleGenerateToken}
+                                        className="w-full bg-green-600 hover:bg-green-700 text-white text-sm py-2.5 px-4 rounded-md font-medium"
+                                    >
+                                        Generate Token
+                                    </button>
+                                </div>
+                            </div>
+
+                            {showToken && (
+                                <div className="bg-white border border-gray-200 rounded-lg">
+                                    <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
+                                        <h3 className="font-semibold text-gray-900">Generated Token</h3>
+                                    </div>
+                                    <div className="p-4">
+                                        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                                            <p className="text-xs uppercase text-gray-500 font-semibold mb-2">Token</p>
+                                            <div className="font-mono bg-white border border-gray-300 text-gray-900 py-3 px-3 rounded-md text-sm break-all select-all">
+                                                {token}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {waiting && (
+                                <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-6 py-4 rounded-lg text-center">
+                                    <div className="animate-spin rounded-full h-6 w-6 border-2 border-yellow-500 border-t-transparent mx-auto mb-2"></div>
+                                    Waiting for User 2 to join...
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
         </div>
     );
 }

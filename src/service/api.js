@@ -97,3 +97,29 @@ export const submitCode = async ({ language_id, source_code, stdin, expected_out
     });
     return res.data;
 };
+
+
+export function polling() {
+    return new Promise((resolve, reject) => {
+        const interval = setInterval(async () => {
+            console.log("polling...");
+            const ctoken = localStorage.getItem("ctoken");
+            console.log(ctoken);
+            try {
+                const res = await axios.get(
+                    `http://localhost:8080/api/poll/${ctoken}`,
+                );
+
+                if (res.data === true) {
+                    clearInterval(interval);
+                    resolve();
+                }
+            } catch (error) {
+                console.error("Polling failed:", error);
+                clearInterval(interval);
+                reject(error);
+            }
+        }, 3000);
+    });
+}
+
