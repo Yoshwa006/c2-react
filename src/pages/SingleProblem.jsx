@@ -10,6 +10,7 @@ function SingleProblem() {
     const [token, setToken] = useState(null);
     const [showToken, setShowToken] = useState(false);
     const [waiting, setWaiting] = useState(false);
+    const [battleStarted, setBattleStarted] = useState(false);
     const { id } = useParams();
     const navigate = useNavigate();
 
@@ -50,6 +51,7 @@ function SingleProblem() {
 
             await polling();
             setWaiting(false);
+            setBattleStarted(true);
             navigate(`/${id}`);
         } catch (err) {
             setError(err.message || 'Failed to generate token');
@@ -177,6 +179,20 @@ function SingleProblem() {
                                     </button>
                                 </div>
                             </div>
+                            {battleStarted && (
+                                <button
+                                    onClick={() => {
+                                        if (window.confirm("Are you sure you want to quit the battle?")) {
+                                            localStorage.removeItem("ctoken");
+                                            setBattleStarted(false);
+                                            navigate('/');
+                                        }
+                                    }}
+                                    className="w-full bg-red-600 hover:bg-red-700 text-white text-sm py-2.5 px-4 rounded-md font-medium"
+                                >
+                                    Quit Battle
+                                </button>
+                            )}
 
                             {showToken && (
                                 <div className="bg-white border border-gray-200 rounded-lg">

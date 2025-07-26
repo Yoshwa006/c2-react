@@ -119,7 +119,7 @@ export function polling() {
                 clearInterval(interval);
                 reject(error);
             }
-        }, 3000);
+        }, 1000);
     });
 }
 
