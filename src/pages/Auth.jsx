@@ -35,6 +35,7 @@ function AuthPage() {
         }
     };
 
+    
     const switchMode = () => {
         setIsRegister(!isRegister);
         setMessage('');

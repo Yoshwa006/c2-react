@@ -1,7 +1,7 @@
 import Editor from "@monaco-editor/react";
 import { Link, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { getSingle, submitCode } from "../service/api.js";
+import { getSingle, submitCode } from "../service/.api.js";
 
 function TextEditor() {
     const [code, setCode] = useState("// write your code here");
@@ -21,7 +21,7 @@ function TextEditor() {
                 setError(null);
                 const problemData = await getSingle({ id });
                 setProblem(problemData);
-                setCode(problemData?.starterCode || "// write your code here");
+                setCode("// write your code here");
             } catch (err) {
                 setError(err.message || 'Something went wrong.');
             } finally {
@@ -36,7 +36,7 @@ function TextEditor() {
 
     const handleSubmit = async () => {
         if (!code.trim()) {
-            console.warn("Editor is empty. Write some code first.");
+            console.warn("Editor is empty !");
             return;
         }
 
