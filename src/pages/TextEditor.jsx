@@ -1,7 +1,7 @@
 import Editor from "@monaco-editor/react";
 import { Link, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { getSingle, submitCode } from "../service/.api.js";
+import { getSingle, submitCode  } from "../service/api";
 
 function TextEditor() {
     const [code, setCode] = useState("// write your code here");

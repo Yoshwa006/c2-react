@@ -1,136 +1,131 @@
-import React, { useState } from 'react';
-import { login, register } from '../service/api';
+import React, { useState } from "react";
+import { login, register } from "../service/api";
 
-function AuthPage() {
-    const [isRegister, setIsRegister] = useState(false);
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [message, setMessage] = useState('');
-    const [messageType, setMessageType] = useState(''); // 'success' or 'error'
-    const [isLoading, setIsLoading] = useState(false);
+export default function AuthPage() {
+  const [mode, setMode] = useState("login");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [status, setStatus] = useState(null);
+  const [msg, setMsg] = useState("");
+  const [loading, setLoading] = useState(false);
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setIsLoading(true);
-        try {
-            if (isRegister) {
-                await register({ email, password });
-                setMessage('Registration successful! You can now log in.');
-                setMessageType('success');
-                setIsRegister(false);
-                setEmail('');
-                setPassword('');
-            } else {
-                const token = await login({ email, password });
-                setMessage('Welcome back! Login successful.');
-                setMessageType('success');
-                // Store token in localStorage or context
-                localStorage.setItem('token', token);
-            }
-        } catch (err) {
-            setMessage(err.message || 'Something went wrong. Please try again.');
-            setMessageType('error');
-        } finally {
-            setIsLoading(false);
-        }
-    };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setStatus(null);
 
-    
-    const switchMode = () => {
-        setIsRegister(!isRegister);
-        setMessage('');
-        setMessageType('');
-        setEmail('');
-        setPassword('');
-    };
+    try {
+      if (mode === "register") {
+        await register({ email, password });
+        setMsg("Registered! Now sign in.");
+        setStatus("success");
+        setMode("login");
+      } else {
+        const token = await login({ email, password });
+        localStorage.setItem("token", token);
+        setMsg("Login successful!");
+        setStatus("success");
+      }
+      setEmail("");
+      setPassword("");
+    } catch (err) {
+      setMsg(err.response?.data || err.message || "Something went wrong.");
+      setStatus("error");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    return (
-        <div className="auth-container">
-            <div className="auth-card">
-                <div className="auth-header">
-                    <h2 className="auth-title">
-                        {isRegister ? 'Create Account' : 'Welcome Back'}
-                    </h2>
-                    <p className="auth-subtitle">
-                        {isRegister
-                            ? 'Join us today and get started'
-                            : 'Sign in to your account to continue'
-                        }
-                    </p>
-                </div>
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-md">
+        <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
+          {mode === "register" ? "Create Account" : "Sign In"}
+        </h2>
 
-                <form onSubmit={handleSubmit} className="auth-form">
-                    <div className="form-group">
-                        <label htmlFor="email" className="form-label">Email</label>
-                        <input
-                            id="email"
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            placeholder="Enter your email"
-                            className="form-input"
-                            required
-                            disabled={isLoading}
-                        />
-                    </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Email
+            </label>
+            <input
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none text-gray-800 bg-white"
+              required
+              disabled={loading}
+            />
+          </div>
 
-                    <div className="form-group">
-                        <label htmlFor="password" className="form-label">Password</label>
-                        <input
-                            id="password"
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            placeholder="Enter your password"
-                            className="form-input"
-                            required
-                            disabled={isLoading}
-                        />
-                        {isRegister && (
-                            <p className="form-hint">
-                                Password should be at least 8 characters long
-                            </p>
-                        )}
-                    </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Password
+            </label>
+            <input
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none text-gray-800 bg-white"
+              required
+              minLength={mode === "register" ? 8 : undefined}
+              disabled={loading}
+            />
+            {mode === "register" && (
+              <p className="text-xs text-gray-500 mt-1">
+                Password must be at least 8 characters
+              </p>
+            )}
+          </div>
 
-                    <button
-                        type="submit"
-                        className={`auth-button ${isLoading ? 'loading' : ''}`}
-                        disabled={isLoading}
-                    >
-                        {isLoading ? (
-                            <span className="loading-spinner"></span>
-                        ) : (
-                            isRegister ? 'Create Account' : 'Sign In'
-                        )}
-                    </button>
-                </form>
+          <button
+            type="submit"
+            disabled={loading}
+            className={`w-full py-2 px-4 rounded-md font-medium transition-colors ${
+              loading
+                ? "bg-gray-400 text-gray-800 cursor-not-allowed"
+                : "bg-blue-600 hover:bg-blue-700 text-white"
+            }`}
+          >
+            {loading
+              ? "Processing..."
+              : mode === "register"
+              ? "Register"
+              : "Login"}
+          </button>
+        </form>
 
-                <div className="auth-footer">
-                    <button
-                        type="button"
-                        className="switch-mode-button"
-                        onClick={switchMode}
-                        disabled={isLoading}
-                    >
-                        {isRegister
-                            ? 'Already have an account? Sign In'
-                            : 'Don\'t have an account? Create one'
-                        }
-                    </button>
-                </div>
-
-                {message && (
-                    <div className={`message ${messageType}`} role="alert">
-                        <div className="message-icon">
-                            {messageType === 'success' ? '✓' : '⚠'}
-                        </div>
-                        <div className="message-text">{message}</div>
-                    </div>
-                )}
-            </div>
+        <div className="mt-4 text-center">
+          <button
+            type="button"
+            onClick={() => {
+              setMode(mode === "login" ? "register" : "login");
+              setMsg("");
+              setStatus(null);
+            }}
+            disabled={loading}
+            className="text-sm text-blue-600 hover:text-blue-800 hover:underline focus:outline-none"
+          >
+            {mode === "login"
+              ? "Need an account? Register"
+              : "Have an account? Sign in"}
+          </button>
         </div>
-    );
-}
 
-export default AuthPage;
+        {msg && (
+          <div
+            className={`mt-4 p-2 rounded-md text-center ${
+              status === "success"
+                ? "bg-green-100 text-green-800"
+                : "bg-red-100 text-red-800"
+            }`}
+          >
+            {msg}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

@@ -64,24 +64,30 @@ export async function enterToken({ token }) {
 
 
 
+
 export async function register({ email, password }) {
     try {
-        const res = await axios.post(`http://localhost:8080/auth/register`, { email, password });
+        const res = await axios.post("http://localhost:8080/auth/register", { email, password });
         return res.data;
     } catch (error) {
-        console.error("Failed to register:", error.message);
+        console.error("Failed to register:", error.response?.data || error.message);
         throw error;
     }
 }
 
 export async function login({ email, password }) {
     try {
-        const res = await axios.post(`http://localhost:8080/auth/login`, { email, password });
-        const token = res.data.token;
+        const res = await axios.post("http://localhost:8080/auth/login", { email, password });
+        const token = res.data?.token;
+
+        if (!token) {
+            throw new Error("Login failed: no token received from server");
+        }
+
         localStorage.setItem("token", token);
         return token;
     } catch (error) {
-        console.error("Failed to login:", error.message);
+        console.error("Failed to login:", error.response?.data || error.message);
         throw error;
     }
 }
