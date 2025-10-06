@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { generateToken, getSingle, polling } from "../service/api.js";
+import { generateKey, getSingle, polling } from "../service/api.js";
 import Navbar from "../components/Navbar.jsx";
 
 function SingleProblem() {
@@ -39,16 +39,17 @@ function SingleProblem() {
     //         }
     //     }
     // })
-    const handleGenerateToken = async () => {
+    const hnadleGenerateKey = async () => {
         try {
             setWaiting(true);
-            const tokenData = await generateToken({ questionId: id });
-            const token = tokenData.token || JSON.stringify(tokenData);
-            localStorage.setItem("ctoken", token);
-            setToken(token);
+
+            const generated_key = await generateKey({ questionId: id });   //getting key for a user
+
+            const key = generated_key.token || JSON.stringify(generated_key);
+            localStorage.setItem("key", key);
+
+            setToken(key);
             setShowToken(true);
-
-
             await polling();
             setWaiting(false);
             setBattleStarted(true);
@@ -172,7 +173,7 @@ function SingleProblem() {
                                     </Link>
 
                                     <button
-                                        onClick={handleGenerateToken}
+                                        onClick={hnadleGenerateKey}
                                         className="w-full bg-green-600 hover:bg-green-700 text-white text-sm py-2.5 px-4 rounded-md font-medium"
                                     >
                                         Generate Token

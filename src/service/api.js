@@ -23,7 +23,7 @@ export async function getSingle({id}) {
     }
 }
 
-    export async function generateToken({ questionId }) {
+    export async function generateKey({ questionId }) {
         const jwt = localStorage.getItem("token");
         const body = {
             questionId,
