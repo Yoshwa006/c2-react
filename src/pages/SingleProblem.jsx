@@ -184,6 +184,7 @@ function SingleProblem() {
                                     onClick={() => {
                                         if (window.confirm("Are you sure you want to quit the battle?")) {
                                             localStorage.removeItem("ctoken");
+                                            localStorage.removeItem("QID");
                                             setBattleStarted(false);
                                             navigate('/');
                                         }

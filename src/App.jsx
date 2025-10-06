@@ -8,7 +8,6 @@ import AuthPage from "./pages/Auth.jsx";
 function App() {
     return (
         <Routes>
-
             <Route path="/" element={<Home />} />
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/:id/edit" element={<TextEditor />} />

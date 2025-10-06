@@ -52,9 +52,9 @@ export async function enterToken({ token }) {
         const res = response.data;
 
         if (res !== -1) {
-            localStorage.setItem("QID", res);
+            localStorage.setItem("q", res);
         }
-        localStorage.setItem("ctoken", token);
+        localStorage.setItem("key", token);
         return res;
     } catch (error) {
         console.error("Failed to enter token:", error);
@@ -84,7 +84,7 @@ export async function login({ email, password }) {
             throw new Error("Login failed: no token received from server");
         }
 
-        localStorage.setItem("token", token);
+        localStorage.setItem("jwt", token);
         return token;
     } catch (error) {
         console.error("Failed to login:", error.response?.data || error.message);
